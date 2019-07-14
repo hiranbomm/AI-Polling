@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 
-NUM_TWEETS = 50  # TODO: up this number after testing
+NUM_TWEETS = 100
 
 
 def init():
@@ -65,7 +65,7 @@ def getPolarity(tweet):
         # print(tweet)
         return 1
     elif blob.sentiment.polarity < 0:
-        print(tweet)
+        # print(tweet)
         return -1
     else:
         return 0
