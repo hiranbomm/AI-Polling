@@ -7,6 +7,10 @@ import matplotlib.pyplot as plt
 
 NUM_TWEETS = 100
 
+# I chose 0.2 and -0.2 as the cut-offs because "I love <candidate>" got a polarity of 0.2
+POL_POS = 0.2
+POL_NEG = -0.2
+
 
 def init():
     candidates = ['Bernie Sanders', 'Donald Trump', 'Joe Biden', 'Elizabeth Warren',
@@ -61,10 +65,10 @@ def getPolarity(tweet):
 
     blob = TextBlob(tweet)
 
-    if blob.sentiment.polarity > 0:
+    if blob.sentiment.polarity >= POL_POS:
         # print(tweet)
         return 1
-    elif blob.sentiment.polarity < 0:
+    elif blob.sentiment.polarity <= POL_NEG:
         # print(tweet)
         return -1
     else:
