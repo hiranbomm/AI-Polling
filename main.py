@@ -1,18 +1,20 @@
-import csv, re, sys
 import pandas as pd
 from textblob import TextBlob
 from TwitterData import TwitterData
+import matplotlib.pyplot as plt
 
-# TODO: cache the data into a file and read it from there. If file doesnt exist, then call the API for fresh data
-# TODO:     OR: set a flag for newData. if it is true, then rewrite the file. else, use the existing file
 
-NUM_TWEETS = 100
-POS_POL = 0.2   # "I love ___ " got polarity of 0.5, so aiming a bit lower to consider a tweet positive
-NEG_POL = -0.5  # "I hate ___ " got polarity of -0.8, so aiming a bit higher to consider a tweet negative
+
+NUM_TWEETS = 50  # TODO: up this number after testing
+
 
 def init():
-    candidates = ['Bernie Sanders', 'Donald Trump']
-    pol_dict = {}
+    candidates = ['Bernie Sanders', 'Donald Trump', 'Joe Biden', 'Elizabeth Warren',
+                  'Kamala Harris', 'Pete Buttigieg','Cory Booker', 'Beto O’Rourke',
+                  'Julián Castro', 'Amy Klobuchar']
+
+    pos_arr = []
+    neg_arr = []
 
     TD = TwitterData(candidates)
     TD.authorize()
@@ -26,21 +28,44 @@ def init():
 
         for tweet in TD.all_tweets:
             pol = getPolarity(tweet)
-            if pol < 0: TD.negative += 1
-            elif pol > 0: TD.positive += 1
+            if pol < 0:
+                TD.negative += 1
+            elif pol > 0:
+                TD.positive += 1
 
-        pol_dict[candidate] = (TD.positive, TD.negative, len(TD.all_tweets)) # TODO: make sure this tuple goes into the dictionary well
+        pos_arr.append(TD.positive)
+        neg_arr.append(TD.negative)
 
-    print(pol_dict)
+    df = pd.DataFrame({
+        "candidates": candidates,
+        "positive": pos_arr,
+        "negative": neg_arr})
+
+    plotData(df)
 
 
-# returns -1 if polarity is negative, 1 if positive and 0 otherwise
+def plotData(df):
+    print("plotting data")
+
+    df.set_index("candidates", drop=True, inplace=True)
+    df.plot.bar(color=['green', 'red'])
+    plt.ylabel("number of tweets")
+    plt.title("number of positive and negative tweets regarding presidential candidates")
+    plt.tight_layout()
+    plt.show()
+
+
+
+## returns -1 if polarity is negative, 1 if positive and 0 otherwise
 def getPolarity(tweet):
 
     blob = TextBlob(tweet)
-    if blob.sentiment.polarity >= POS_POL:
+
+    if blob.sentiment.polarity > 0:
+        # print(tweet)
         return 1
-    elif blob.sentiment.polarity <= NEG_POL:
+    elif blob.sentiment.polarity < 0:
+        print(tweet)
         return -1
     else:
         return 0

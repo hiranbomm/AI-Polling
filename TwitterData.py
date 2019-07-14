@@ -1,5 +1,6 @@
 import tweepy
 import re
+import requests_cache
 
 
 
@@ -20,17 +21,18 @@ class TwitterData(object):
         try:
             # keys deleted for privacy
 
-
             authorized = tweepy.OAuthHandler(consumerKey, consumerSecret)
             authorized.set_access_token(accessKey, accessSecret)
 
-            self.API = tweepy.API(authorized) # , wait_on_rate_limit=True)
+            self.API = tweepy.API(authorized)  # , wait_on_rate_limit=True)
 
         except:
             print("ERROR: AUTHENTICATION FOR API FAILED")
 
 
     def getData(self, candidate, NUM_TWEETS):
+        requests_cache.install_cache('twitter_cache', backend='sqlite', expire_after=1800)
+
         print("getting tweets")
         self.all_tweets.clear()
 
