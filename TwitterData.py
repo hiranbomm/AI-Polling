@@ -19,11 +19,7 @@ class TwitterData(object):
     def authorize(self):
         try:
             # keys deleted for privacy
-            consumerKey = 'iv5nToJwQNSA3xVeskWP5on5G'
-            consumerSecret = 'P93uV3esVxMu5mh2nNHJDj3iTUr5SRzfMGE1Vdg8GGsK1VOOkA'
 
-            accessKey = '1150145735259807745-m0IxHzaMRFWNV3GndR82Kwu80IuywP'
-            accessSecret = 'tTzYHIsbbZMnD6zCwa4QR46GjDHTh91QUP1zXmwXztEYu'
 
             authorized = tweepy.OAuthHandler(consumerKey, consumerSecret)
             authorized.set_access_token(accessKey, accessSecret)
