@@ -11,7 +11,7 @@ import folium
 # added this class to this file because moving objects from file to file is taking up too much times
 class TwitterData(object):
 
-    def __init__(self, candidates):
+    def __init__(self):
         # self.all_tweets = []
         self.tweet_data = []  # this is the new field you added.
         self.API = None
@@ -21,11 +21,8 @@ class TwitterData(object):
     def authorize(self):
         try:
             # keys deleted for privacy
-            consumerKey = 'coJsIbWW7o1WN0Caiihc6quOQ'
-            consumerSecret = 'TA4ZNUbSu3u9PfeWqmKZtClNRF4Y0ZXIDxiVuKdgZFGPmsq9iO'
 
-            accessKey = '1150145735259807745-o2TymPP1JJyuFJPIOvR2BmitOVWKjd'
-            accessSecret = 'XnvutgN0NdPzcuoHX9mzcRL6WNriLaGY40b5hsgCldPyb'
+
 
 
             authorized = tweepy.OAuthHandler(consumerKey, consumerSecret)
@@ -50,11 +47,12 @@ class TwitterData(object):
         print("done getting data")
 
 
-NUM_TWEETS = 100
 
-# I chose 0.4 and -0.4 as the cut-offs because "I love <candidate>" got a polarity of 0.4
-POL_POS = 0.4
-POL_NEG = -0.4
+
+NUM_TWEETS = 130
+# chose 0.3 as the cut-off becuase "I love <candidate>" got this polarity
+POL_POS = 0.3
+POL_NEG = -0.3
 
 
 def geo(location):
@@ -91,12 +89,13 @@ def get_polarity(text):
 
 if __name__ == "__main__":
 
-    candidates = ['Donald Trump'] # 'Bernie Sanders', , 'Elizabeth Warren''Kamala Harris', 'Pete Buttigieg', 'Joe Biden','Cory Booker', 'Beto O’Rourke', 'Julián Castro', 'Amy Klobuchar']
+    candidates = ['Donald Trump', 'Bernie Sanders', 'Elizabeth Warren', 'Kamala Harris',
+                  'Pete Buttigieg', 'Joe Biden', 'Beto O’Rourke']
 
     pos_arr = []
     neg_arr = []
 
-    TD = TwitterData(candidates)
+    TD = TwitterData()
     TD.authorize()
 
     for candidate in candidates:
@@ -107,32 +106,37 @@ if __name__ == "__main__":
         TD.negative = 0
         TD.positive = 0
 
-        map = folium.Map()
+        map = folium.Map(prefer_canvas=True)
 
         for tweet in TD.tweet_data:
 
             loc = tweet.user.location
             try:
                 (lat, long) = geo(loc)
-
                 pol = get_polarity(tweet.text)
 
-                if pol < 0:
+                if pol <= 0:
                     TD.negative += 1
 
-                    folium.Marker(
+                    folium.CircleMarker(
+                        radius=5,
                         location=[lat, long],
-                        popup=tweet.text,
-                        icon=folium.Icon(color='red', icon='info-sign')
+                        # popup='The Waterfront',
+                        opacity=0.4,
+                        color='red',
+                        fill=True,
                     ).add_to(map)
 
                 elif pol > 0:
                     TD.positive += 1
 
-                    folium.Marker(
+                    folium.CircleMarker(
+                        radius=5,
                         location=[lat, long],
-                        popup=tweet.text,
-                        icon=folium.Icon(color='green', icon='info-sign')
+                        opacity=0.4,
+                        # popup='The Waterfront',
+                        color='green',
+                        fill=True,
                     ).add_to(map)
 
             except:
@@ -149,4 +153,3 @@ if __name__ == "__main__":
         "negative": neg_arr})
 
     plot_bar_graph_data(df)
-
