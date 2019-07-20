@@ -1,10 +1,11 @@
 import pandas as pd
 from textblob import TextBlob
-# from TwitterData import TwitterData
+from geopy import geocoders
 import matplotlib.pyplot as plt
 import tweepy
 import re
 import requests_cache
+import folium
 
 
 # added this class to this file because moving objects from file to file is taking up too much times
@@ -51,9 +52,15 @@ class TwitterData(object):
 
 NUM_TWEETS = 100
 
-# I chose 0.2 and -0.2 as the cut-offs because "I love <candidate>" got a polarity of 0.2
-POL_POS = 0.2
-POL_NEG = -0.2
+# I chose 0.4 and -0.4 as the cut-offs because "I love <candidate>" got a polarity of 0.4
+POL_POS = 0.4
+POL_NEG = -0.4
+
+
+def geo(location):
+    g = geocoders.Nominatim(user_agent="my_application")
+    loc = g.geocode(location)
+    return loc.latitude, loc.longitude
 
 
 def plot_bar_graph_data(df):
@@ -84,15 +91,14 @@ def get_polarity(text):
 
 if __name__ == "__main__":
 
-    candidates = ['Bernie Sanders', 'Donald Trump', 'Joe Biden', 'Elizabeth Warren',
-                  'Kamala Harris', 'Pete Buttigieg','Cory Booker', 'Beto O’Rourke',
-                  'Julián Castro', 'Amy Klobuchar']
+    candidates = ['Donald Trump'] # 'Bernie Sanders', , 'Elizabeth Warren''Kamala Harris', 'Pete Buttigieg', 'Joe Biden','Cory Booker', 'Beto O’Rourke', 'Julián Castro', 'Amy Klobuchar']
 
     pos_arr = []
     neg_arr = []
 
     TD = TwitterData(candidates)
     TD.authorize()
+
     for candidate in candidates:
         print("current candidate: ", candidate)
         TD.get_data(candidate, NUM_TWEETS)
@@ -101,17 +107,41 @@ if __name__ == "__main__":
         TD.negative = 0
         TD.positive = 0
 
-        for tweet in TD.tweet_data:
-            # TODO: get location of tweet
+        map = folium.Map()
 
-            pol = get_polarity(tweet.text)
-            if pol < 0:
-                TD.negative += 1
-            elif pol > 0:
-                TD.positive += 1
+        for tweet in TD.tweet_data:
+
+            loc = tweet.user.location
+            try:
+                (lat, long) = geo(loc)
+
+                pol = get_polarity(tweet.text)
+
+                if pol < 0:
+                    TD.negative += 1
+
+                    folium.Marker(
+                        location=[lat, long],
+                        popup=tweet.text,
+                        icon=folium.Icon(color='red', icon='info-sign')
+                    ).add_to(map)
+
+                elif pol > 0:
+                    TD.positive += 1
+
+                    folium.Marker(
+                        location=[lat, long],
+                        popup=tweet.text,
+                        icon=folium.Icon(color='green', icon='info-sign')
+                    ).add_to(map)
+
+            except:
+                pass
 
         pos_arr.append(TD.positive)
         neg_arr.append(TD.negative)
+
+        map.save(outfile='' + candidate + '.html')
 
     df = pd.DataFrame({
         "candidates": candidates,
